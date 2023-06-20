@@ -9,14 +9,15 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 
 import pickle
+import numpy as np
 
-from models.NetModel import Net
+from models.basic import Net
 
 # Define hyperparameters
 batch_size = 64
 learning_rate = 0.001
 momentum = 0.9
-num_epochs = 10
+num_epochs = 20
 
 # Define transformations for the dataset
 transform = transforms.Compose([
@@ -42,11 +43,13 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=momentum)
 
 
-def train(num_epochs):
-    # xvals = np.array()
-    # yvals = np.array()
+def train():
+    # xvals = np.empty(1)
+    # yvals = np.empty(1)
     # plt.xlabel( 'num-epoch')
     # plt.ylabel( 'running loss')
+
+    global num_epochs
 
     for epoch in range(num_epochs):
         running_loss = 0.0
@@ -63,12 +66,18 @@ def train(num_epochs):
                 print(f'[{epoch+1}, {i+1}] loss: {running_loss/2000:.3f}')
                 running_loss = 0.0
         
+        #np.append(xvals, running_loss)
+        #np.append( yvals, running_loss)
         print( "Epoch: " + str(epoch+1) + "\nRunning Loss: " + str(running_loss ))
-        plt.plot((epoch+1), (running_loss))
-        plt.show()
+        #plt.plot(xvals, yvals)
+        #plt.show()
 
+    PATH = '/Users/amyliu/Documents/HSHSP23/task1/cifar_net.pth'
+    torch.save(net.state_dict(), PATH)
+    print('Saved.')
 
-def test(net, testloader, classes):
+def test(net):
+    global testloader, classes
     correct = 0
     total = 0
     with torch.no_grad():
@@ -81,11 +90,17 @@ def test(net, testloader, classes):
 
     print(f'Accuracy of the network on the test images: {100 * correct / total:.2f}%')
 
-    # Save
-    PATH = './cifar_net.pth'
-    torch.save(net.state_dict(), PATH)
-    print('Saved.')
 
-train(10)
 
-test(epoch)
+train()
+
+
+PATH = '/Users/amyliu/Documents/HSHSP23/task1/cifar_net.pth'
+model = Net()
+net.load_state_dict(torch.load(PATH))
+
+model.eval()
+print("Model loaded")
+
+test(model)
+
